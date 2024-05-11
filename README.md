@@ -1,4 +1,4 @@
 # A Room of One's Own
-Tribute to A Room of One's Own, by Virginia Woolf
-Ongoing project and experiment — still WIP!
-Designed and developed by Denise Trocchi
+3D tribute to the essay A Room of One's Own, by Virginia Woolf.
+
+[Ongoing project and experiment, designed and developed by Denise Trocchi]
