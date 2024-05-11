@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>A Room of One's Own</title>
+    <meta charset="UTF-8">
+    <!-- Tribute to A Room of One's Own, by Virginia Woolf -->
+    <!-- Ongoing project and experiment, by Denise Trocchi -->
+    <!-- Copyright 2024 Denise Trocchi — denisetrocchi.com -->
+    <meta name="company" content="Denise Trocchi, https://denisetrocchi.com">
+    <meta name="design" content="Denise Trocchi, https://denisetrocchi.com">
+    <meta name="keywords"
+        content="digital, development, web, website, frontend, 3d, design, graphic, research, books, literature, visual, experiment, creative">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#000">
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <link rel="shortcut icon" href="/img/favicon.png" type="image/png">
+    <link href="/css/style.css" rel="stylesheet" type="text/css">
+    <script type="importmap">
+        {
+            "imports": {
+              "three": "https://cdn.skypack.dev/three@0.127.0/build/three.module",
+              "three/examples/jsm/controls/OrbitControls": "https://cdn.skypack.dev/three@0.127.0/examples/jsm/controls/OrbitControls.js",
+              "three/examples/jsm/loaders/GLTFLoader": "https://cdn.skypack.dev/three@0.127.0/examples/jsm/loaders/GLTFLoader.js",
+              "three/examples/jsm/loaders/MTLLoader": "https://cdn.skypack.dev/three@0.127.0/examples/jsm/loaders/MTLLoader.js",
+              "three/examples/jsm/loaders/RGBELoader": "https://cdn.skypack.dev/three@0.127.0/examples/jsm/loaders/RGBELoader.js"
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+</head>
+
+<body>
+    <div class="wrapper">
+        <header>
+            <details>
+                <summary><h1>A Room of One&rsquo;s Own</h1></summary>
+                <div class="content">
+                    <p>Digital tribute to the essay <em class="nowrap">A Room of One&rsquo;s Own</em>, by Virginia Woolf. 
+                    </p>
+                    <p>The development of a borderless and freely accessible 3D interactive space 
+                        is both a homage to Woolf&rsquo;s ideas and a testament to the 
+                        transformative potential of equitably distributed digital resources, 
+                        which can provide avenues for empowerment and exploration to all users.
+                    </p>
+                    <small>
+                        &copy; Denise Trocchi
+                    </small>
+                </div>
+            </details>
+        </header>
+        <main>
+            <div id="canvas-area"></div>
+        </main>
+        <footer>
+            <div class="copy">
+                <p>&copy; <a href="https://denisetrocchi.com/" rel="me" title="Denise Trocchi" target="_blank">DT</a></p>
+            </div>
+        </footer>
+    </div>
+    <script type="text/javascript" src="/js/main.js"></script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+        import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+        import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader';
+
+        let container, camera, scene,
+            renderer, controls,
+            isOrbitControlActive = false,
+            time = 0,
+            width = window.innerWidth,
+            height = window.innerHeight;
+
+        init();
+        animate();
+
+        function init() {
+
+            container = document.getElementById('canvas-area');
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+            camera.position.set(0, 15, 0);
+            camera.lookAt(0, 0, 0);
+
+            scene = new THREE.Scene();
+
+            new RGBELoader()
+                .setPath('models/')
+                .load('sky.hdr', function (texture) {
+                    texture.mapping = THREE.EquirectangularReflectionMapping;
+                    scene.background = texture;
+                    scene.environment = texture;
+                    render();
+                    const loader = new GLTFLoader().setPath('models/');
+                    loader.load('room.glb', function (gltf) {
+                        scene.add(gltf.scene);
+                        render();
+                    });
+
+                });
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 2);
+            scene.add(ambientLight);
+
+            var dirLight = new THREE.DirectionalLight(0xffffff, 5);
+            dirLight.position.set(1, .5, 0);
+            dirLight.castShadow = true;
+            scene.add(dirLight);
+
+            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            container.appendChild(renderer.domElement);
+
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.target.set(0, 0, 0);
+            controls.update();
+            controls.enablePan = false;
+            controls.enableDamping = true;
+            controls.addEventListener('start', function () {
+                isOrbitControlActive = true;
+            });
+            controls.addEventListener('end', function () {
+                isOrbitControlActive = false;
+            });
+
+            window.addEventListener('resize', onWindowResize, false);
+
+            gsap.to(camera.position, {
+                x: 0,
+                y: 0,
+                z: 10,
+                duration: 3.5,
+                ease: "power2.inOut"
+            });
+            gsap.to(camera.rotation, {
+                x: 0,
+                y: 0,
+                z: 0,
+                duration: 4,
+                ease: "power2.inOut",
+            });
+
+        }
+
+        function onWindowResize() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            // if (!isOrbitControlActive) {
+            //     time += 0.01;
+            //     camera.position.y = camera.position.y - 0.00016 * Math.sin(time);
+            //     camera.rotation.z = camera.rotation.z - 0.001 * Math.sin(time);
+            // }
+            render();
+        }
+
+        function render() {
+            renderer.render(scene, camera);
+        }
+
+    </script>
+</body>
+
+</html>
