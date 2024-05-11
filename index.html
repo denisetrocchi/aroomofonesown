@@ -34,13 +34,16 @@
     <div class="wrapper">
         <header>
             <details>
-                <summary><h1>A Room of One&rsquo;s Own</h1></summary>
+                <summary>
+                    <h1>A Room of One&rsquo;s Own</h1>
+                </summary>
                 <div class="content">
-                    <p>Digital tribute to the essay <em class="nowrap">A Room of One&rsquo;s Own</em>, by Virginia Woolf. 
+                    <p>Digital tribute to the essay <em class="nowrap">A Room of One&rsquo;s Own</em>, by Virginia
+                        Woolf.
                     </p>
-                    <p>The development of a borderless and freely accessible 3D interactive space 
-                        is both a homage to Woolf&rsquo;s ideas and a testament to the 
-                        transformative potential of equitably distributed digital resources, 
+                    <p>The development of a borderless and freely accessible 3D interactive space
+                        is both a homage to Woolf&rsquo;s ideas and a testament to the
+                        transformative potential of equitably distributed digital resources,
                         which can provide avenues for empowerment and exploration to all users.
                     </p>
                     <small>
@@ -54,7 +57,8 @@
         </main>
         <footer>
             <div class="copy">
-                <p>&copy; <a href="https://denisetrocchi.com/" rel="me" title="Denise Trocchi" target="_blank">DT</a></p>
+                <p>&copy; <a href="https://denisetrocchi.com/" rel="me" title="Denise Trocchi" target="_blank">DT</a>
+                </p>
             </div>
         </footer>
     </div>
@@ -85,20 +89,26 @@
 
             scene = new THREE.Scene();
 
-            new RGBELoader()
-                .setPath('models/')
-                .load('sky.hdr', function (texture) {
-                    texture.mapping = THREE.EquirectangularReflectionMapping;
-                    scene.background = texture;
-                    scene.environment = texture;
-                    render();
-                    const loader = new GLTFLoader().setPath('models/');
-                    loader.load('room.glb', function (gltf) {
-                        scene.add(gltf.scene);
+            function isMobileDevice() {
+                return window.innerWidth < 768;
+            }
+
+            if (!isMobileDevice()) {
+                new RGBELoader()
+                    .setPath('models/')
+                    .load('sky.hdr', function (texture) {
+                        texture.mapping = THREE.EquirectangularReflectionMapping;
+                        scene.background = texture;
+                        scene.environment = texture;
                         render();
                     });
+            }
 
-                });
+            const loader = new GLTFLoader().setPath('models/');
+            loader.load('room.glb', function (gltf) {
+                scene.add(gltf.scene);
+                render();
+            });
 
             const ambientLight = new THREE.AmbientLight(0xffffff, 2);
             scene.add(ambientLight);
